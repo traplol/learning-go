@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"runtime"
 )
 
 func loops() {
@@ -76,10 +77,31 @@ func Sqrt(x float64) float64 {
 //	return i // compile error: undefined: i
 //}
 
+func testSwitch() {
+	fmt.Print("Go runs on ")
+	switch os := runtime.GOOS; os {
+	case "darwin":
+		fmt.Println("OS X.")
+	case "linux":
+		fmt.Println("Linux.")
+	default:
+		fmt.Printf("%s.", os)
+	}
+}
+
 func testSqrt(x float64) {
 	var m, o = Sqrt(x), math.Sqrt(x)
 	var d = m - o
 	fmt.Println("Sqrt(", x, ") =", m, "| math.Sqrt(", x, ") =", o, "-- delta:", d)
+}
+
+func testDefer() {
+	// Need to do further research to understand the uses of defer.....
+	fmt.Println("Counting...")
+	for i := 0; i < 10; i++ {
+		defer fmt.Println(i)
+	}
+	fmt.Println("Done.")
 }
 
 func main() {
@@ -97,4 +119,8 @@ func main() {
 	testSqrt(0)
 	testSqrt(math.Inf(1))
 	testSqrt(math.NaN())
+
+	testSwitch()
+
+	testDefer()
 }

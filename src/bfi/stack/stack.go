@@ -15,7 +15,7 @@ func NewStack() *Stack {
 }
 
 func (s *Stack) Push(v int) *Stack {
-	if s.count >= cap(s.values) {
+	if s.count >= len(s.values) {
 		s.values = append(s.values, v)
 	} else {
 		s.values[s.count] = v

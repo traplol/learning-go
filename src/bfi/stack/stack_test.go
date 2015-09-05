@@ -69,5 +69,20 @@ func TestStackPop(t *testing.T) {
 	if e := 0; stack.Count() != e {
 		t.Errorf("expected stack count to be: %d, got %d", e, v)
 	}
+}
 
+func TestManyPushes(t *testing.T) {
+	count := 10000
+	stack := stack.NewStack()
+	for i := 0; i < count; i++ {
+		stack.Push(i + 1)
+	}
+	if a := stack.Count(); a != count {
+		t.Errorf("Expected stack count to be %d, got %d", count, a)
+	}
+	for e := count; e > 0; e-- {
+		if a, _ := stack.Pop(); a != e {
+			t.Errorf("Expected stack to pop %d, got %d", e, a)
+		}
+	}
 }

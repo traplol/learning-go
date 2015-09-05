@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	//	"golang.org/x/tour/pic"
+	"golang.org/x/tour/wc"
+	"math"
+	"strings"
 )
 
 func pointers() {
@@ -127,11 +130,59 @@ type Coordinate struct {
 }
 
 func maps() {
-	var m = make(map[string]Coordinate)
-	m["Bell Labs"] = Coordinate{
-		40.68433, -74.39967, // why is this last comma necessary??
+	var m = map[string]Coordinate{
+		"Bell Labs": {
+			40.68433, -74.39967, // why are..
+		},
+		"Google": {
+			37.42202, -122.08408, // these...
+		}, // commas required??
 	}
 	fmt.Println(m["Bell Labs"])
+
+	n := make(map[string]int)
+	n["Answer"] = 42
+	fmt.Println("The value:", n["Answer"])
+	n["Answer"] = 48
+	fmt.Println("The value:", n["Answer"])
+
+	delete(n, "Answer")
+	fmt.Println("The value:", n["Answer"])
+
+	v, ok := n["Answer"]
+	fmt.Println("The value:", v, "Present?", ok)
+}
+
+func WordCount(s string) map[string]int {
+	fields := strings.Fields(s)
+	m := make(map[string]int)
+	for _, v := range fields {
+		m[v]++
+	}
+	return m
+}
+
+func fibonacci() func() int {
+	// woah this is pretty cool.
+	prev, prevPrev := 0, 1
+	return func() int {
+		tmp := prev
+		prev = prevPrev + prev
+		prevPrev = tmp
+		return prev
+	}
+}
+
+func closures() {
+	hypot := func(x, y float64) float64 {
+		return math.Sqrt(x*x + y*y)
+	}
+	fmt.Println(hypot(3, 4))
+
+	f := fibonacci()
+	for i := 0; i < 10; i++ {
+		fmt.Println(f())
+	}
 }
 
 func main() {
@@ -142,4 +193,6 @@ func main() {
 	ranges()
 	//pic.Show(Pic) // Note: This will print a base64 encoded image.
 	maps()
+	wc.Test(WordCount)
+	closures()
 }

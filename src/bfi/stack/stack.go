@@ -14,13 +14,14 @@ func NewStack() *Stack {
 	return &Stack{values: make([]int, 8)}
 }
 
-func (s *Stack) Push(v int) {
+func (s *Stack) Push(v int) *Stack {
 	if s.count >= cap(s.values) {
 		s.values = append(s.values, v)
 	} else {
 		s.values[s.count] = v
 	}
 	s.count++
+	return s
 }
 
 func (s *Stack) Pop() (int, bool) {
@@ -28,7 +29,8 @@ func (s *Stack) Pop() (int, bool) {
 		return 0, true
 	}
 	s.count--
-	return s.values[s.count], false
+	empty := s.count == 0
+	return s.values[s.count], empty
 }
 
 func (s *Stack) Count() int {

@@ -4,14 +4,14 @@ import (
 	"bfi/stack"
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"os"
 )
 
 var tape [30000]byte
 var p = 0
 var reader = bufio.NewReader(os.Stdin)
-var jmpStack = stack.NewStack()
-var instructions []int
+var instructions []*Instruction
 var insPtr = 0
 
 const (
@@ -25,16 +25,19 @@ const (
 	LoopEnd = iota
 )
 
-type Instruction int
+type Instruction struct {
+	Op     int
+	JumpTo int
+}
 
-func interp(ins Instruction) {
+func interp(ins *Instruction) {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Printf("p=%d, insPtr=%d\n", p, insPtr)
 			bufio.NewReader(os.Stdin).ReadBytes('\n')
 		}
 	}()
-	switch ins {
+	switch ins.Op {
 	case Right:
 		p++
 		insPtr++
@@ -48,56 +51,86 @@ func interp(ins Instruction) {
 		tape[p]--
 		insPtr++
 	case Out:
-		fmt.Print(tape[p])
+		fmt.Printf("%c", tape[p])
 		insPtr++
 	case In:
 		tape[p], _ = reader.ReadByte()
 		insPtr++
 	case LoopBeg:
-		insPtr++
-		fmt.Println("Pushing IP:", insPtr)
-		jmpStack.Push(insPtr)
+		if tape[p] != 0 {
+			insPtr++
+		} else {
+			insPtr = ins.JumpTo
+		}
 	case LoopEnd:
-		fmt.Printf("Stack: %s\n", jmpStack.String())
-		insPtr, _ = jmpStack.Pop()
-		fmt.Println("Popping IP:", insPtr)
+		insPtr = ins.JumpTo
 	}
 }
 
-func parse(code string) {
+func parse(code []byte) {
 	for _, c := range code {
 		switch c {
 		default:
 			continue
 		case '>':
-			instructions = append(instructions, Right)
+			instructions = append(instructions, &Instruction{Op: Right, JumpTo: 0})
 		case '<':
-			instructions = append(instructions, Left)
+			instructions = append(instructions, &Instruction{Op: Left, JumpTo: 0})
 		case '+':
-			instructions = append(instructions, Add)
+			instructions = append(instructions, &Instruction{Op: Add, JumpTo: 0})
 		case '-':
-			instructions = append(instructions, Sub)
+			instructions = append(instructions, &Instruction{Op: Sub, JumpTo: 0})
 		case '.':
-			instructions = append(instructions, Out)
+			instructions = append(instructions, &Instruction{Op: Out, JumpTo: 0})
 		case ',':
-			instructions = append(instructions, In)
+			instructions = append(instructions, &Instruction{Op: In, JumpTo: 0})
 		case '[':
-			instructions = append(instructions, LoopBeg)
+			instructions = append(instructions, &Instruction{Op: LoopBeg, JumpTo: 0})
 		case ']':
-			instructions = append(instructions, LoopEnd)
+			instructions = append(instructions, &Instruction{Op: LoopEnd, JumpTo: 0})
+		}
+	}
+	// Calculate jumps.
+	s := stack.NewStack()
+	for i := 0; i < len(instructions); i++ {
+		op := instructions[i]
+		if op.Op != LoopBeg {
+			continue
+		}
+		for j := i; j < len(instructions); j++ {
+			op2 := instructions[j]
+			if op2.Op == LoopBeg {
+				s.Push(1)
+			} else if op2.Op == LoopEnd {
+				_, empty := s.Pop()
+				if empty {
+					op.JumpTo = j + 1
+					op2.JumpTo = i
+					break
+				}
+			}
 		}
 	}
 }
 
 func run() {
 	for insPtr < len(instructions) {
-		ins := Instruction(instructions[insPtr])
+		ins := instructions[insPtr]
 		interp(ins)
 	}
 }
 
 func main() {
-	code := "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++."
+	args := os.Args
+	if len(args) != 2 {
+		fmt.Fprintf(os.Stderr, "usage: %s filename\n", args[0])
+		return
+	}
+	code, err := ioutil.ReadFile(args[1])
+	if err != nil {
+		fmt.Fprint(os.Stderr, "File not found.\n")
+		return
+	}
 	parse(code)
 	run()
 }

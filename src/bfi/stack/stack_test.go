@@ -6,7 +6,7 @@ import (
 )
 
 func TestStackPush(t *testing.T) {
-	stack := bfi.NewStack()
+	stack := stack.NewStack()
 	stack.Push(42)
 	if stack.Count() != 1 {
 		t.Error("expected stack count to be: 1")
@@ -18,7 +18,7 @@ func TestStackPush(t *testing.T) {
 }
 
 func TestStackPop(t *testing.T) {
-	stack := bfi.NewStack()
+	stack := stack.NewStack()
 	stack.Push(42)
 	stack.Push(2)
 
@@ -40,8 +40,8 @@ func TestStackPop(t *testing.T) {
 	if e := 42; v != e {
 		t.Errorf("expected stack to pop the value: %d, got %d", e, v)
 	}
-	if empty != false {
-		t.Error("expected stack to not be empty.")
+	if empty != true {
+		t.Error("expected stack to be empty.")
 	}
 	if e := 0; stack.Count() != e {
 		t.Errorf("expected stack count to be: %d, got %d", e, v)
@@ -52,7 +52,7 @@ func TestStackPop(t *testing.T) {
 	if e := 100; v != e {
 		t.Errorf("expected stack to pop the value: %d, got %d", e, v)
 	}
-	if empty != false {
+	if empty != true {
 		t.Error("expected stack to be empty.")
 	}
 	if e := 0; stack.Count() != e {
